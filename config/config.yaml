@@ -1,0 +1,118 @@
+# env
+env: cartpole_swingup
+wandb_group_name: cartpole_rad
+wandb_exp_type: None
+agent_type: rad # Available options are: rad, sac, and drq
+# IMPORTANT: if action_repeat is used the effective number of env steps needs to be
+# multiplied by action_repeat in the result graphs.
+action_repeat: 4
+# train
+num_train_steps: 50000
+num_test_steps: 50000
+num_train_iters: 1
+num_seed_steps: 1000
+replay_buffer_capacity: 100000
+seed: 0
+# eval
+eval_frequency: 1000
+num_eval_episodes: 10
+# misc
+log_frequency_step: 1000
+save_frequency: 125000
+log_save_tb: false
+save_video: false
+device: cuda
+# observation
+image_size: 84
+image_pad: 4
+frame_stack: 3
+# global params
+lr: 1e-3
+encoder_lr: 1e-3
+batch_size: 128
+# TED config
+ted: false
+ted_coef: 0
+# Distracting Control Suite - training environment
+difficulty: None
+dynamic: false
+background_dataset_path: None
+background_dataset_videos: None
+background_kwargs: None
+camera_kwargs: None
+color_kwargs: None # to get the colours in the paper use: {'max_delta': 0.1,'step_std': 0.0, 'disjoint_sets': 'train'}
+# Distracting Control Suite - test environment
+test_difficulty: None
+test_dynamic: false
+test_background_dataset_path: None
+test_background_dataset_videos: None
+test_background_kwargs: None
+test_camera_kwargs: None
+test_color_kwargs: None # to get the colours in the paper use: {'max_delta': 0.1,'step_std': 0.0, 'disjoint_sets': 'test'}
+# fix positions - fixes train and test positions as specified in the paper
+reacher_fix_pos: false
+ball_in_cup_fix_pos: false
+# world model variations
+train_variations: false
+test_variations: false
+# agent configuration
+agent:
+  name: ${agent_type}
+  class: agent.Agent
+  params:
+    agent_type: ${agent_type}
+    obs_shape: ??? # to be specified later
+    action_shape: ??? # to be specified later
+    action_range: ??? # to be specified later
+    device: ${device}
+    encoder_cfg: ${encoder}
+    critic_cfg: ${critic}
+    actor_cfg: ${actor}
+    ted_cfg: ${ted_classifier}
+    discount: 0.99
+    init_temperature: 0.1
+    lr: ${lr}
+    encoder_lr: ${encoder_lr}
+    actor_update_frequency: 2
+    critic_tau: 0.01
+    encoder_tau: 0.01
+    critic_target_update_frequency: 2
+    batch_size: ${batch_size}
+    ted: ${ted}
+    ted_coef: ${ted_coef}
+
+critic:
+  class: agent.Critic
+  params:
+    encoder_cfg: ${agent.params.encoder_cfg}
+    action_shape: ${agent.params.action_shape}
+    hidden_dim: 1024
+    hidden_depth: 2
+    device: ${device}
+
+actor:
+  class: agent.Actor
+  params:
+    encoder_cfg: ${agent.params.encoder_cfg}
+    action_shape: ${agent.params.action_shape}
+    hidden_depth: 2
+    hidden_dim: 1024
+    log_std_bounds: [-10, 2]
+
+encoder:
+  class: agent.Encoder
+  params:
+    obs_shape: ${agent.params.obs_shape}
+    feature_dim: 50
+
+ted_classifier:
+  class: agent.TEDClassifier
+  params:
+    hidden_size: ${encoder.params.feature_dim}
+
+# hydra configuration
+hydra:
+  name: ${env}
+  run:
+    prefix: ./runs/${now:%Y.%m.%d}
+    dir: ${hydra.run.prefix}/${hydra.job.override_dirname}
