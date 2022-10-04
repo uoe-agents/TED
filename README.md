@@ -23,14 +23,14 @@ conda activate ted
 ```
 
 ## Instructions
-You can run the code uing the configuration specified in config.yaml with:
+You can run the code using the configuration specified in config.yaml with:
 ```(python)
 python train.py
 ```
 
 You can also override the default configuration values, for example:
 ```(python)
-python train.py env=cartpole_swingup ted=True ted_coef=100
+python train.py --domain_name walker --task_name walk --ted True
 ```
 
 This will produce the `runs` folder, where all the outputs are going to be stored including train/eval logs, 
