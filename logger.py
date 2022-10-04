@@ -3,37 +3,20 @@ import json
 import os
 import shutil
 from collections import defaultdict
-import wandb
-
 import numpy as np
 
 import torch
 import torchvision
-import wandb
 from termcolor import colored
 from torch.utils.tensorboard import SummaryWriter
 
-COMMON_TRAIN_FORMAT = [('episode', 'E', 'int'), ('step', 'S', 'int'),
-                       ('episode_reward', 'R', 'float'),
-                       ('duration', 'D', 'time')]
+COMMON_TRAIN_FORMAT = [('episode', 'E', 'int'), ('step', 'S', 'int'), ('episode_reward', 'R', 'float'),
+                       ('duration', 'D', 'time'), ('batch_reward', 'BR', 'float'), ('actor_loss', 'ALOSS', 'float'),
+                       ('critic_loss', 'CLOSS', 'float'), ('alpha_loss', 'TLOSS', 'float'),
+                       ('alpha_value', 'TVAL', 'float'), ('actor_entropy', 'AENT', 'float'),
+                       ('ted_loss', 'TEDLOSS', 'float')]
 
-COMMON_EVAL_FORMAT = [('episode', 'E', 'int'), ('step', 'S', 'int'),
-                      ('episode_reward', 'R', 'float')]
-
-AGENT_TRAIN_FORMAT = {
-    'sac': [('batch_reward', 'BR', 'float'), ('actor_loss', 'ALOSS', 'float'),
-            ('critic_loss', 'CLOSS', 'float'),
-            ('alpha_loss', 'TLOSS', 'float'), ('alpha_value', 'TVAL', 'float'),
-            ('actor_entropy', 'AENT', 'float'), ('ted_loss', 'TEDLOSS', 'float')],
-    'rad': [('batch_reward', 'BR', 'float'), ('actor_loss', 'ALOSS', 'float'),
-            ('critic_loss', 'CLOSS', 'float'),
-            ('alpha_loss', 'TLOSS', 'float'), ('alpha_value', 'TVAL', 'float'),
-            ('actor_entropy', 'AENT', 'float'), ('ted_loss', 'TEDLOSS', 'float')],
-    'drq': [('batch_reward', 'BR', 'float'), ('actor_loss', 'ALOSS', 'float'),
-            ('critic_loss', 'CLOSS', 'float'),
-            ('alpha_loss', 'TLOSS', 'float'), ('alpha_value', 'TVAL', 'float'),
-            ('actor_entropy', 'AENT', 'float'), ('ted_loss', 'TEDLOSS', 'float')]
-}
+COMMON_EVAL_FORMAT = [('episode', 'E', 'int'), ('step', 'S', 'int'), ('episode_reward', 'R', 'float')]
 
 class AverageMeter(object):
     def __init__(self):
@@ -137,10 +120,9 @@ class Logger(object):
         else:
             self._sw = None
         # each agent has specific output format for training
-        assert agent in AGENT_TRAIN_FORMAT
-        train_format = COMMON_TRAIN_FORMAT + AGENT_TRAIN_FORMAT[agent]
+        #train_format = COMMON_TRAIN_FORMAT + AGENT_TRAIN_FORMAT[agent]
         self._train_mg = MetersGroup(os.path.join(log_dir, 'train'),
-                                     formating=train_format)
+                                     formating=COMMON_TRAIN_FORMAT)
         self._eval_mg = MetersGroup(os.path.join(log_dir, 'eval'),
                                     formating=COMMON_EVAL_FORMAT)
 
@@ -186,8 +168,6 @@ class Logger(object):
         mg.log(key, value, n)
 
         step = self._update_step(step)
-        if step % self._log_frequency == 0:
-            wandb.log({"{}".format(key): value/n, "training_timestep": step}, commit=False)
 
     def log_param(self, key, param, step, log_frequency=None):
         if not self._should_log(step, log_frequency):
@@ -229,5 +209,3 @@ class Logger(object):
             self._train_mg.dump(step, 'train', save)
         else:
             raise f'invalid log type: {ty}'
-
-        wandb.log({}, commit=True)

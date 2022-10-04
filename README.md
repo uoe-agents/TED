@@ -5,6 +5,8 @@ Representations for Improved Generalisation in Reinforcement Learning.
 
 This code is based on the DrQ PyTorch implementation by [Yarats et al.](https://github.com/denisyarats/drq). As per the original code base, we use [kornia](https://github.com/kornia/kornia) for data augmentation.
 
+Our SVEA implementation is based on the official implementation from the [DMControl Generalization Benchmark](https://github.com/nicklashansen/dmcontrol-generalization-benchmark).
+
 The 'distracting_control' folder contains the [Distracting Control Suite](https://github.com/sahandrez/distracting_control) 
 code with minor amendments to create disjoint colour sets for training and testing. The 'dmc2gym' folder contains the
 [dmc2gym](https://github.com/denisyarats/dmc2gym) code amended to use the distracting_control wrappers.

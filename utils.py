@@ -2,16 +2,15 @@ import math
 import os
 import random
 from collections import deque
-
 import numpy as np
-import scipy.linalg as sp_la
-
 import gym
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from skimage.util.shape import view_as_windows
 from torch import distributions as pyd
+from datetime import datetime
+import subprocess
+import json
 
 
 class eval_mode(object):
@@ -174,3 +173,12 @@ class SquashedNormal(pyd.transformed_distribution.TransformedDistribution):
         for tr in self.transforms:
             mu = tr(mu)
         return mu
+
+def write_info(args, fp):
+    data = {
+        'timestamp': str(datetime.now()),
+        'git': subprocess.check_output(["git", "describe", "--always"]).strip().decode(),
+        'args': vars(args)
+        }
+    with open(fp, 'w') as f:
+        json.dump(data, f, indent=4, separators=(',', ': '))

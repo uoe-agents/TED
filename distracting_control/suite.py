@@ -60,8 +60,7 @@ def load(domain_name,
   env = suite.load('cartpole', 'balance')
   ```
 
-  Adding a difficulty will configure distractions matching the reference paper
-  for easy, medium, hard.
+  Adding a difficulty alone will not configure distractions - this has been updated from original code.
 
   Users can also toggle dynamic properties for distractions.
 
@@ -110,30 +109,30 @@ def load(domain_name,
       visualize_reward=visualize_reward)
 
   # Apply background distractions.
-  # if difficulty or background_kwargs:
-  #   background_dataset_path = (
-  #       background_dataset_path or suite_utils.DEFAULT_BACKGROUND_PATH)
-  #   final_background_kwargs = dict()
-  #   if difficulty:
-  #     # Get kwargs for the given difficulty.
-  #     num_videos = suite_utils.DIFFICULTY_NUM_VIDEOS[difficulty]
-  #     final_background_kwargs.update(
-  #         suite_utils.get_background_kwargs(domain_name, num_videos, dynamic,
-  #                                           background_dataset_path,
-  #                                           background_dataset_videos))
-  #   else:
-  #     # Set the dataset path and the videos.
-  #     final_background_kwargs.update(
-  #         dict(
-  #             dataset_path=background_dataset_path,
-  #             dataset_videos=background_dataset_videos))
-  #   if background_kwargs:
-  #     # Overwrite kwargs with those passed here.
-  #     final_background_kwargs.update(background_kwargs)
-  #   env = background.DistractingBackgroundEnv(env, **final_background_kwargs)
+  if background_kwargs or background_dataset_path:
+    background_dataset_path = (
+        background_dataset_path or suite_utils.DEFAULT_BACKGROUND_PATH)
+    final_background_kwargs = dict()
+    if difficulty:
+      # Get kwargs for the given difficulty.
+      num_videos = suite_utils.DIFFICULTY_NUM_VIDEOS[difficulty]
+      final_background_kwargs.update(
+          suite_utils.get_background_kwargs(domain_name, num_videos, True,
+                                            background_dataset_path,
+                                            background_dataset_videos))
+    else:
+      # Set the dataset path and the videos.
+      final_background_kwargs.update(
+          dict(
+              dataset_path=background_dataset_path,
+              dataset_videos=background_dataset_videos))
+    if background_kwargs:
+      # Overwrite kwargs with those passed here.
+      final_background_kwargs.update(background_kwargs)
+    env = background.DistractingBackgroundEnv(env, **final_background_kwargs)
 
   # Apply camera distractions.
-  if difficulty or camera_kwargs:
+  if camera_kwargs:
     final_camera_kwargs = dict(camera_id=render_kwargs["camera_id"])
     if difficulty:
       # Get kwargs for the given difficulty.
@@ -145,9 +144,8 @@ def load(domain_name,
     #   final_camera_kwargs.update(camera_kwargs)
     env = camera.DistractingCameraEnv(env, **final_camera_kwargs)
 
-  # Apply color distractions.
-  # TODO tidy up - this has been updated from original to only apply color distractions if no camera distractions
-  if difficulty or color_kwargs and not camera_kwargs:
+  # Apply color distractions
+  if color_kwargs:
     final_color_kwargs = dict()
     if difficulty:
       # Get kwargs for the given difficulty.
@@ -162,10 +160,10 @@ def load(domain_name,
   if env_state_wrappers is not None:
     for wrapper in env_state_wrappers:
       env = wrapper(env)
+      
   # Apply Pixel wrapper after distractions. This is needed to ensure the
   # changes from the distraction wrapper are applied to the MuJoCo environment
   # before the rendering occurs.
-
   if pixel_obs:
       env = pixels.Wrapper(
           env,
