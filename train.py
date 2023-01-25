@@ -205,14 +205,8 @@ class Workspace(object):
             self.step += 1
 
             if self.step == self.cfg.num_train_steps:
-                if self.cfg.collect_disentanglement_samples:
-                    print("Collecting disentanglement metric data")
-                    import collect_disentanglement_metric_data
-                    collect_disentanglement_metric_data.main(self.cfg, self.agent, self.device)
-
                 print("Switching to test env")
                 self.env = self.test_env
-
                 done = True
 
 def main(cfg):
